@@ -593,6 +593,14 @@ function processBoardLocal() {
             // Draw cropped square
             tempCtx.drawImage(uploaderImage, ox, oy, ow, oh, 0, 0, 256, 256);
             
+            // Detect board background colors automatically
+            const colors = detectBoardColors(tempCtx);
+            const colorLight = colors.colorLight;
+            const colorDark = colors.colorDark;
+            
+            console.log("Automatically detected light square color:", colorLight);
+            console.log("Automatically detected dark square color:", colorDark);
+
             // Process the 8x8 grid
             const cellSize = 32; // 256 / 8
             const boardRepresentation = [];
@@ -618,7 +626,7 @@ function processBoardLocal() {
                     );
                     
                     const isWhiteSquare = (rank + file) % 2 === 0;
-                    const piece = classifyPieceHeuristic(cellCanvas, isWhiteSquare);
+                    const piece = classifyPieceHeuristic(cellCanvas, isWhiteSquare, colorLight, colorDark);
                     rankRow.push(piece);
                 }
                 boardRepresentation.push(rankRow);
@@ -644,6 +652,62 @@ function processBoardLocal() {
             showToast('Scan failed. Please try again or crop closer.');
         }
     }, 150);
+}
+
+// Sample corner pixels of all 64 squares to find the median light and dark square colors
+function detectBoardColors(tempCtx) {
+    const cellSize = 32;
+    const imgData = tempCtx.getImageData(0, 0, 256, 256);
+    const data = imgData.data;
+    
+    const lightColors = [];
+    const darkColors = [];
+    
+    for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+            const cellX = f * cellSize;
+            const cellY = r * cellSize;
+            const borderOffset = 4; // Offset inwards to avoid grid lines
+            
+            const samples = [
+                getPixel(data, cellX + borderOffset, cellY + borderOffset, 256),
+                getPixel(data, cellX + cellSize - 1 - borderOffset, cellY + borderOffset, 256),
+                getPixel(data, cellX + borderOffset, cellY + cellSize - 1 - borderOffset, 256),
+                getPixel(data, cellX + cellSize - 1 - borderOffset, cellY + cellSize - 1 - borderOffset, 256)
+            ];
+            
+            let rAvg = 0, gAvg = 0, bAvg = 0;
+            samples.forEach(s => {
+                rAvg += s.r;
+                gAvg += s.g;
+                bAvg += s.b;
+            });
+            rAvg = Math.round(rAvg / samples.length);
+            gAvg = Math.round(gAvg / samples.length);
+            bAvg = Math.round(bAvg / samples.length);
+            
+            const isLight = (r + f) % 2 === 0;
+            if (isLight) {
+                lightColors.push({ r: rAvg, g: gAvg, b: bAvg });
+            } else {
+                darkColors.push({ r: rAvg, g: gAvg, b: bAvg });
+            }
+        }
+    }
+    
+    // Compute median color of all squares to ignore coordinate texts / overlays
+    const getMedianColor = (colors) => {
+        const rList = colors.map(c => c.r).sort((a,b) => a-b);
+        const gList = colors.map(c => c.g).sort((a,b) => a-b);
+        const bList = colors.map(c => c.b).sort((a,b) => a-b);
+        const mid = Math.floor(colors.length / 2);
+        return { r: rList[mid], g: gList[mid], b: bList[mid] };
+    };
+    
+    return {
+        colorLight: getMedianColor(lightColors),
+        colorDark: getMedianColor(darkColors)
+    };
 }
 
 // Convert 8x8 piece grid to FEN string

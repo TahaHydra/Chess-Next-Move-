@@ -14,152 +14,55 @@ const PIECE_IMAGES = {
     'bK': 'https://chessboardjs.com/img/chesspieces/wikipedia/bK.png'
 };
 
-// Full name mapping
-const PIECE_NAMES = {
-    'P': 'Pawn',
-    'R': 'Rook',
-    'N': 'Knight',
-    'B': 'Bishop',
-    'Q': 'Queen',
-    'K': 'King'
-};
+const PIECE_CODES = ['wP', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bP', 'bR', 'bN', 'bB', 'bQ', 'bK'];
+const pieceTemplates = []; // Holds preloaded templates: { code, img, theme }
 
-/**
- * Heuristic Classifier for Chess Pieces.
- * Classifies a cropped piece canvas using geometric and density descriptors.
- */
-function classifyPieceHeuristic(canvas, isWhiteSquare) {
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-    const imgData = ctx.getImageData(0, 0, w, h);
-    const data = imgData.data;
-
-    // 1. Determine Background Color by sampling corners
-    const corners = [
-        getPixel(data, 0, 0, w),
-        getPixel(data, w - 1, 0, w),
-        getPixel(data, 0, h - 1, w),
-        getPixel(data, w - 1, h - 1, w),
-        getPixel(data, 2, 2, w),
-        getPixel(data, w - 3, 2, w)
-    ];
-    
-    // Average corner color represents the square background
-    let bgR = 0, bgG = 0, bgB = 0;
-    corners.forEach(c => {
-        bgR += c.r;
-        bgG += c.g;
-        bgB += c.b;
-    });
-    bgR = Math.round(bgR / corners.length);
-    bgG = Math.round(bgG / corners.length);
-    bgB = Math.round(bgB / corners.length);
-
-    // 2. Extract Foreground Pixels (Distance from background)
-    let minX = w, maxX = 0, minY = h, maxY = 0;
-    const fgMask = [];
-    let fgCount = 0;
-
-    for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-            const pixel = getPixel(data, x, y, w);
-            const dist = colorDistance(pixel, { r: bgR, g: bgG, b: bgB });
-            
-            // Threshold for foreground detection
-            // We ignore board coordinates text (often in the bottom-left or top-right corners of edge squares)
-            // by skipping border pixels
-            const isBorder = (x < w * 0.08 || x > w * 0.92 || y < h * 0.08 || y > h * 0.92);
-            
-            if (dist > 38 && !isBorder) {
-                fgMask.push({ x, y, r: pixel.r, g: pixel.g, b: pixel.b, brightness: (pixel.r + pixel.g + pixel.b) / 3 });
-                fgCount++;
-                if (x < minX) minX = x;
-                if (x > maxX) maxX = x;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
-            }
-        }
-    }
-
-    // If there are too few foreground pixels, the square is empty
-    const areaRatio = fgCount / (w * h);
-    if (areaRatio < 0.035) {
-        return null;
-    }
-
-    // 3. Determine Color (White or Black)
-    // White pieces are filled with white, black pieces are filled with dark gray/black.
-    // Calculate average brightness of the foreground pixels
-    let totalBrightness = 0;
-    fgMask.forEach(p => totalBrightness += p.brightness);
-    const avgBrightness = totalBrightness / fgCount;
-    const color = avgBrightness > 120 ? 'w' : 'b';
-
-    // 4. Classify Type (P, N, B, R, Q, K) based on bounding box features
-    const pW = (maxX - minX) + 1;
-    const pH = (maxY - minY) + 1;
-    const pArea = fgCount;
-    
-    // Feature metrics
-    const aspectRatio = pH / pW;
-    const density = pArea / (pW * pH);
-
-    // Profile counters
-    let topThird = 0;
-    let midThird = 0;
-    let bottomThird = 0;
-    let leftHalf = 0;
-    let rightHalf = 0;
-
-    fgMask.forEach(p => {
-        // Relative coordinates inside bounding box
-        const relY = (p.y - minY) / pH;
-        const relX = (p.x - minX) / pW;
-
-        if (relY < 0.3) topThird++;
-        else if (relY < 0.7) midThird++;
-        else bottomThird++;
-
-        if (relX < 0.5) leftHalf++;
-        else rightHalf++;
+// Preload templates for template matching
+function preloadPieceTemplates() {
+    // 1. Preload Lichess cburnett/wikipedia style pieces (hosted on CDNJS with CORS)
+    PIECE_CODES.forEach(code => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = `https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/${code}.png`;
+        img.onload = () => {
+            pieceTemplates.push({ code, img, theme: 'cburnett' });
+        };
+        img.onerror = () => {
+            // Backup loading path if CDNJS fails
+            const backupImg = new Image();
+            backupImg.crossOrigin = 'anonymous';
+            backupImg.src = `https://unpkg.com/chessboardjs@1.0.0/www/img/chesspieces/wikipedia/${code}.png`;
+            backupImg.onload = () => {
+                pieceTemplates.push({ code, img: backupImg, theme: 'cburnett' });
+            };
+        };
     });
 
-    const topToBottom = topThird / (bottomThird || 1);
-    const midToTotal = midThird / pArea;
-    const symmetry = leftHalf / (rightHalf || 1);
-
-    let type = 'P'; // Default to Pawn
-
-    // Knight: Horse shape is highly asymmetric (facing left in standard styles)
-    if (symmetry > 1.28 || symmetry < 0.78) {
-        type = 'N';
-    } 
-    // Rook: Very boxy and dense, balanced top and bottom
-    else if (density > 0.62 && aspectRatio < 1.15 && topToBottom > 0.65) {
-        type = 'R';
-    } 
-    // Pawn: Small piece, very bottom-heavy
-    else if (areaRatio < 0.075 && topToBottom < 0.45) {
-        type = 'P';
-    } 
-    // King: Very tall, narrow top (cross) and wide bottom
-    else if (aspectRatio > 1.25 && topToBottom < 0.6) {
-        type = 'K';
-    }
-    // Queen: Tall, spiked wide crown (very active middle and top area)
-    else if (aspectRatio > 1.1 && topToBottom > 0.65 && density > 0.48) {
-        type = 'Q';
-    } 
-    // Bishop: Oval-shaped, narrow top and bottom, wide middle
-    else {
-        type = 'B';
-    }
-
-    return color + type;
+    // 2. Preload Chess.com Neo style pieces (try to load, fail gracefully if CORS issues)
+    PIECE_CODES.forEach(code => {
+        const charColor = code.charAt(0); // 'w' or 'b'
+        const charType = code.charAt(1).toLowerCase(); // 'p', 'r', 'n', 'b', 'q', 'k'
+        const chessComCode = charColor + charType;
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${chessComCode}.png`;
+        img.onload = () => {
+            pieceTemplates.push({ code, img, theme: 'neo' });
+        };
+        // If Chess.com CORS fails, we simply ignore it (Wikipedia templates are good enough)
+        img.onerror = () => {
+            console.log(`Failed to preload Chess.com Neo template for ${code} due to CORS or network.`);
+        };
+    });
 }
 
-// Helpers
+// Start preloading immediately
+preloadPieceTemplates();
+
+/**
+ * Helper to get a pixel's RGB values from canvas image data.
+ */
 function getPixel(data, x, y, width) {
     const idx = (y * width + x) * 4;
     return {
@@ -170,10 +73,97 @@ function getPixel(data, x, y, width) {
     };
 }
 
+/**
+ * Heuristic color distance helper.
+ */
 function colorDistance(c1, c2) {
     return Math.sqrt(
         Math.pow(c1.r - c2.r, 2) +
         Math.pow(c1.g - c2.g, 2) +
         Math.pow(c1.b - c2.b, 2)
     );
+}
+
+/**
+ * Programmatic Template Matching Classifier for Chess Pieces.
+ * Compares the inner 70% of a cropped square against the preloaded template piece masks
+ * and returns the closest piece code or null if empty.
+ */
+function classifyPieceHeuristic(canvas, isLightSquare, colorLight, colorDark) {
+    const S = canvas.width;
+    const ctx = canvas.getContext('2d');
+    const cellData = ctx.getImageData(0, 0, S, S).data;
+    
+    const bg = isLightSquare ? colorLight : colorDark;
+    
+    // We compare the middle 70% of the square to ignore coordinates text and grid line boundaries
+    const startX = Math.round(S * 0.15);
+    const endX = Math.round(S * 0.85);
+    const startY = Math.round(S * 0.15);
+    const endY = Math.round(S * 0.85);
+    const totalPixels = (endX - startX) * (endY - startY);
+    
+    // 1. Calculate error against an empty square (pure background color)
+    let emptyError = 0;
+    for (let y = startY; y < endY; y++) {
+        for (let x = startX; x < endX; x++) {
+            const idx = (y * S + x) * 4;
+            emptyError += Math.abs(cellData[idx] - bg.r) +
+                          Math.abs(cellData[idx + 1] - bg.g) +
+                          Math.abs(cellData[idx + 2] - bg.b);
+        }
+    }
+    emptyError = emptyError / totalPixels;
+    
+    // If the average color difference is very low, the square is definitely empty
+    // (Normal empty squares have error < 3, while squares with pieces have error > 25)
+    if (emptyError < 12.0) {
+        return null;
+    }
+    
+    // 2. Perform Template Matching against preloaded pieces
+    let bestPieceCode = null;
+    let minPieceError = Infinity;
+    
+    // Create an offscreen canvas to render templates
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = S;
+    tempCanvas.height = S;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    pieceTemplates.forEach(template => {
+        // Draw the template piece on the exact background color of this square
+        const img = template.img;
+        if (!img || !img.complete || img.naturalWidth === 0) return; // Image not fully loaded yet
+        
+        tempCtx.fillStyle = `rgb(${bg.r}, ${bg.g}, ${bg.b})`;
+        tempCtx.fillRect(0, 0, S, S);
+        tempCtx.drawImage(img, 0, 0, S, S);
+        
+        const templateData = tempCtx.getImageData(0, 0, S, S).data;
+        
+        // Compute pixel absolute error
+        let error = 0;
+        for (let y = startY; y < endY; y++) {
+            for (let x = startX; x < endX; x++) {
+                const idx = (y * S + x) * 4;
+                error += Math.abs(cellData[idx] - templateData[idx]) +
+                         Math.abs(cellData[idx + 1] - templateData[idx + 1]) +
+                         Math.abs(cellData[idx + 2] - templateData[idx + 2]);
+            }
+        }
+        error = error / totalPixels;
+        
+        if (error < minPieceError) {
+            minPieceError = error;
+            bestPieceCode = template.code;
+        }
+    });
+    
+    // Compare the best piece template error with the empty square error
+    if (emptyError < minPieceError) {
+        return null;
+    }
+    
+    return bestPieceCode;
 }
