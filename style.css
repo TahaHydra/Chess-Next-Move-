@@ -1,0 +1,81 @@
+/* Grandmaster Analytics - Global Styles & Custom Animations */
+
+/* Custom grid background */
+.grid-bg {
+    background-size: 40px 40px;
+    background-image: 
+        linear-gradient(to right, rgba(77, 70, 53, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(77, 70, 53, 0.1) 1px, transparent 1px);
+}
+
+/* Checkered watermark background for empty dashboard panels */
+.bg-chess-pattern {
+    background-image: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.007) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.007) 75%, rgba(255, 255, 255, 0.007)), 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.007) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.007) 75%, rgba(255, 255, 255, 0.007));
+    background-size: 64px 64px;
+    background-position: 0 0, 32px 32px;
+}
+
+/* Material Symbols icon sizing defaults */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #121416;
+}
+::-webkit-scrollbar-thumb {
+    background: #333537;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4d4635;
+}
+
+/* Keyframe animations */
+@keyframes bounce-short {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+.animate-bounce-short {
+    animation: bounce-short 0.4s ease-in-out;
+}
+
+/* Custom Toast notification styles */
+#toast-container {
+    perspective: 1000px;
+}
+
+/* Loading animations */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spin 3s linear infinite;
+}
+
+/* Piece Picker highlights */
+.piece-picker-btn {
+    transition: all 0.15s ease;
+}
+.piece-picker-btn:hover {
+    transform: translateY(-2px);
+}
+.piece-picker-btn.active {
+    box-shadow: 0 0 10px rgba(242, 202, 80, 0.4);
+}
+
+/* Custom active arrows styling */
+.move-arrow-svg {
+    filter: drop-shadow(0 0 6px rgba(242, 202, 80, 0.5));
+}

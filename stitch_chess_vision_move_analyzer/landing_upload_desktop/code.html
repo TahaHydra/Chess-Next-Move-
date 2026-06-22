@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chess Next Move - Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-bright": "#37393b",
+                      "secondary": "#bcc7dd",
+                      "on-tertiary-fixed-variant": "#27438a",
+                      "on-primary-fixed-variant": "#574500",
+                      "secondary-container": "#3c475a",
+                      "surface-dim": "#121416",
+                      "on-background": "#e2e2e5",
+                      "surface-container": "#1e2022",
+                      "on-error": "#690005",
+                      "outline": "#99907c",
+                      "on-primary-container": "#554300",
+                      "surface-container-high": "#282a2c",
+                      "primary": "#f2ca50",
+                      "inverse-surface": "#e2e2e5",
+                      "on-primary": "#3c2f00",
+                      "error-container": "#93000a",
+                      "on-secondary-fixed": "#111c2c",
+                      "on-tertiary-fixed": "#00174b",
+                      "win-green": "#81B64C",
+                      "secondary-fixed": "#d8e3fa",
+                      "tertiary": "#bfcdff",
+                      "on-tertiary": "#082b72",
+                      "tertiary-container": "#97b0ff",
+                      "surface-container-lowest": "#0c0e10",
+                      "on-tertiary-container": "#254188",
+                      "on-primary-fixed": "#241a00",
+                      "deep-charcoal": "#121212",
+                      "on-surface-variant": "#d0c5af",
+                      "inverse-primary": "#735c00",
+                      "surface-container-low": "#1a1c1e",
+                      "primary-fixed": "#ffe088",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#333537",
+                      "on-secondary-container": "#aab6cc",
+                      "secondary-fixed-dim": "#bcc7dd",
+                      "surface-gray": "#2D3748",
+                      "tertiary-fixed": "#dbe1ff",
+                      "outline-variant": "#4d4635",
+                      "surface-container-highest": "#333537",
+                      "primary-container": "#d4af37",
+                      "on-secondary-fixed-variant": "#3c475a",
+                      "primary-fixed-dim": "#e9c349",
+                      "inverse-on-surface": "#2f3133",
+                      "on-surface": "#e2e2e5",
+                      "surface": "#121416",
+                      "background": "#121416",
+                      "loss-red": "#E53E3E",
+                      "analysis-blue": "#3182CE",
+                      "surface-tint": "#e9c349",
+                      "on-secondary": "#263142"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "gutter": "16px",
+                      "container-margin": "24px",
+                      "stack-lg": "32px",
+                      "stack-md": "16px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "headline-xl": ["Hanken Grotesk"],
+                      "body-sm": ["Hanken Grotesk"],
+                      "label-mono": ["JetBrains Mono"],
+                      "label-sm": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .grid-bg {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(77, 70, 53, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(77, 70, 53, 0.1) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col grid-bg">
+<!-- TopAppBar & Navigation Shell -->
+<header class="bg-background border-b border-outline-variant w-full top-0 z-50 sticky">
+<div class="flex items-center justify-between px-container-margin h-16 w-full max-w-[1440px] mx-auto">
+<!-- Brand -->
+<div class="flex items-center gap-stack-sm cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md">grid_view</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Grandmaster Analytics</h1>
+</div>
+<!-- Desktop Navigation Cluster (Mapping BottomNavBar labels for Web) -->
+<nav class="hidden md:flex items-center gap-stack-lg">
+<a class="flex items-center gap-2 text-primary font-bold hover:text-primary-fixed-dim transition-all active:scale-95 duration-150 relative" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Home</span>
+<div class="absolute -bottom-[22px] left-0 w-full h-[2px] bg-primary"></div>
+</a>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">query_stats</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Analyze</span>
+</a>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">History</span>
+</a>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+<!-- Trailing Action -->
+<div class="flex items-center cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<div class="w-8 h-8 rounded-full bg-surface-gray border border-outline flex items-center justify-center text-primary font-label-mono text-label-mono">
+                    UP
+                </div>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-[1440px] mx-auto px-container-margin py-stack-lg flex flex-col gap-16">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-container-margin items-center min-h-[614px]">
+<!-- Left: Dropzone -->
+<div class="lg:col-span-5 flex flex-col gap-stack-md h-full">
+<div class="bg-surface-container-low border border-outline rounded-xl p-4 flex justify-between items-center">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase">Input Target</span>
+<span class="material-symbols-outlined text-primary text-[18px]">center_focus_strong</span>
+</div>
+<div class="flex-grow bg-surface-dim border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-12 hover:border-primary hover:bg-surface-container-lowest transition-all cursor-pointer group relative overflow-hidden">
+<!-- Subtle glow effect on hover -->
+<div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-stack-md group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[40px] text-primary" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm text-center">Analyze Screenshot</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-center max-w-[250px]">
+                        Drag &amp; drop a chess board image here, or click to browse files.
+                    </p>
+<div class="mt-stack-lg px-6 py-2 rounded border border-outline text-on-surface font-label-mono text-label-mono group-hover:bg-surface-container transition-colors">
+                        .PNG, .JPG, .WEBP
+                    </div>
+</div>
+</div>
+<!-- Right: Explanation -->
+<div class="lg:col-span-7 flex flex-col gap-stack-lg pl-0 lg:pl-12">
+<div>
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-stack-md">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Engine powered</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-stack-sm leading-tight">
+                        Extract tactical insights from <span class="text-primary">pixels</span>.
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px]">
+                        Seamlessly bridge the gap between observation and analysis. Upload a screenshot of any live game, puzzle, or stream. Our sophisticated computer vision model instantaneously reconstructs the board state, ready for deep Stockfish evaluation.
+                    </p>
+</div>
+<div class="grid grid-cols-2 gap-stack-md max-w-[500px]">
+<div class="flex flex-col gap-2 p-4 bg-surface-container rounded-lg border border-surface-bright">
+<span class="material-symbols-outlined text-primary">memory</span>
+<span class="font-label-mono text-label-mono text-on-surface">Sub-second recognition</span>
+</div>
+<div class="flex flex-col gap-2 p-4 bg-surface-container rounded-lg border border-surface-bright">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<span class="font-label-mono text-label-mono text-on-surface">Cloud Stockfish 16.1</span>
+</div>
+</div>
+<div class="flex items-center gap-stack-md mt-stack-sm">
+<button class="bg-primary text-on-primary font-headline-md text-[16px] px-8 py-3 rounded hover:bg-primary-fixed-dim transition-colors flex items-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(242,202,80,0.2)]">
+                        Initialize Engine
+                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<button class="bg-transparent border border-outline text-on-surface font-headline-md text-[16px] px-8 py-3 rounded hover:bg-surface-container transition-colors flex items-center gap-2 active:scale-95">
+                        View Demo
+                    </button>
+</div>
+</div>
+</section>
+<!-- Showcase Section: Supported Themes -->
+<section class="flex flex-col gap-stack-lg py-12 border-t border-outline-variant">
+<div class="flex flex-col gap-2">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Universal Recognition</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[600px]">
+                    Trained on thousands of variations, our vision model flawlessly interprets board geometries and piece sets from the world's leading platforms.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-container-margin">
+<!-- Theme Card 1 -->
+<div class="group relative rounded-xl bg-surface-container border border-outline-variant overflow-hidden flex flex-col">
+<div class="h-64 w-full bg-surface-dim relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
+<img class="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 transition-opacity duration-500 transform group-hover:scale-105" data-alt="A highly detailed, photorealistic digital rendering of a sleek web browser window displaying a modern chess interface. The board utilizes a classic deep green and off-white color palette with sharply defined, traditional 2D piece silhouettes. The surrounding application environment is rendered in deep charcoal grays with minimal UI elements, perfectly capturing a high-end, focused analytical workspace. Lighting is pristine, uniform, and slightly cool, emphasizing data clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe_DAfrc5FfJRRwaA62gikqtzkTwHgcyMuWchsfgSnfpIxnoe0llRtcz98KmglshJuVC0Ctl-ReXOQIxSMh-TJw0jLWg7qk2eq2HJsuHQpybnwn8VH7Gx7A7gTUQeu55WUCR_fPcFnAm4iCJRepuvuxgK1EyIPKfSlXcfvHVDucZg1ZZsbr4jjZ6H1lwwKPS_uWja9eJfLLg9bzbfMdk-KHQaU6fejI9Nu0HWYLbp9oGAnUnFz_IBulran2gj0O_kQTrt2lwvnFfs"/>
+</div>
+<div class="p-container-margin flex justify-between items-end relative z-20 -mt-12 bg-surface-container">
+<div class="flex flex-col gap-1">
+<span class="font-label-mono text-label-mono text-primary uppercase tracking-widest">Supported Profile</span>
+<h4 class="font-headline-md text-headline-md text-on-surface">Classic Green</h4>
+</div>
+<div class="h-8 w-8 rounded bg-surface-dim border border-outline flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px] text-win-green">check</span>
+</div>
+</div>
+</div>
+<!-- Theme Card 2 -->
+<div class="group relative rounded-xl bg-surface-container border border-outline-variant overflow-hidden flex flex-col">
+<div class="h-64 w-full bg-surface-dim relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
+<img class="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 transition-opacity duration-500 transform group-hover:scale-105" data-alt="An immaculate, high-resolution mockup of a minimalist chess application screen. The focal point is a digital chessboard rendered with subtle, desaturated slate-blue and cool gray squares. The chess pieces are striking in their simplified, flat, modern iconography. The overall aesthetic is incredibly clean, set against an ultra-dark, almost black background devoid of shadows, exuding a clinical, high-performance tactical environment tailored for professional analysts." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBedkbyDPx4zuJkY53mNtDKD2yGggbehNamcpD42ljtQw7M0F80VQ3bHEHhe_jCDoDjdvUiYTOeUuuA1JVrXQARdjU9teZzc4lpkHlCqq1KNx9xrxj1QsadknMiZwz4h9LQHCYNXiZmPPcrh4hcp9WJzbk5lHV6_ni6EAiWNw6euhI9sP1s2DHoUr-eP0eN6DyhRRwF-CMgS7IQvZmUBdTCpTBSzdqsYsSO-SfX0oYmtbw7yIvVawgYvmkeXf8Ens-I5nvhPg18qes"/>
+</div>
+<div class="p-container-margin flex justify-between items-end relative z-20 -mt-12 bg-surface-container">
+<div class="flex flex-col gap-1">
+<span class="font-label-mono text-label-mono text-primary uppercase tracking-widest">Supported Profile</span>
+<h4 class="font-headline-md text-headline-md text-on-surface">Slate Minimalist</h4>
+</div>
+<div class="h-8 w-8 rounded bg-surface-dim border border-outline flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px] text-win-green">check</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Hidden on Web, visible on Mobile to follow the JSON anchor/rules) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container border-t border-outline-variant z-50 flex justify-around items-center h-16 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-primary font-bold w-[25%] active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">query_stats</span>
+<span class="font-label-sm text-label-sm mt-1">Analyze</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">history</span>
+<span class="font-label-sm text-label-sm mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-sm text-label-sm mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

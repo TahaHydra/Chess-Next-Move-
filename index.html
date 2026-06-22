@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Grandmaster Analytics - Chess Next Move</title>
+    
+    <!-- Tailwind CSS CDN with forms/container-queries -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Google Fonts & Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css"/>
+
+    <!-- Tailwind Config containing HSL Design System Tokens -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#37393b",
+                        "secondary": "#bcc7dd",
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "on-primary-fixed-variant": "#574500",
+                        "secondary-container": "#3c475a",
+                        "surface-dim": "#121416",
+                        "on-background": "#e2e2e5",
+                        "surface-container": "#1e2022",
+                        "on-error": "#690005",
+                        "outline": "#99907c",
+                        "on-primary-container": "#554300",
+                        "surface-container-high": "#282a2c",
+                        "primary": "#f2ca50",
+                        "inverse-surface": "#e2e2e5",
+                        "on-primary": "#3c2f00",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#111c2c",
+                        "on-tertiary-fixed": "#00174b",
+                        "win-green": "#81B64C",
+                        "secondary-fixed": "#d8e3fa",
+                        "tertiary": "#bfcdff",
+                        "on-tertiary": "#082b72",
+                        "tertiary-container": "#97b0ff",
+                        "surface-container-lowest": "#0c0e10",
+                        "on-tertiary-container": "#254188",
+                        "on-primary-fixed": "#241a00",
+                        "deep-charcoal": "#121212",
+                        "on-surface-variant": "#d0c5af",
+                        "inverse-primary": "#735c00",
+                        "surface-container-low": "#1a1c1e",
+                        "primary-fixed": "#ffe088",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#333537",
+                        "on-secondary-container": "#aab6cc",
+                        "secondary-fixed-dim": "#bcc7dd",
+                        "surface-gray": "#2D3748",
+                        "tertiary-fixed": "#dbe1ff",
+                        "outline-variant": "#4d4635",
+                        "surface-container-highest": "#333537",
+                        "primary-container": "#d4af37",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "primary-fixed-dim": "#e9c349",
+                        "inverse-on-surface": "#2f3133",
+                        "on-surface": "#e2e2e5",
+                        "surface": "#121416",
+                        "background": "#121416",
+                        "loss-red": "#E53E3E",
+                        "analysis-blue": "#3182CE",
+                        "surface-tint": "#e9c349",
+                        "on-secondary": "#263142"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "container-margin": "24px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-xl": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-mono": ["JetBrains Mono"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col grid-bg overflow-x-hidden">
+
+    <!-- Header & Top Navigation Bar -->
+    <header class="bg-background border-b border-outline-variant w-full top-0 z-50 sticky select-none">
+        <div class="flex items-center justify-between px-container-margin h-16 w-full max-w-[1600px] mx-auto">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-stack-sm cursor-pointer active:opacity-80" onclick="navigateToScreen('landing')">
+                <span class="material-symbols-outlined text-primary font-headline-md text-headline-md">grid_view</span>
+                <h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Grandmaster Analytics</h1>
+            </div>
+            <!-- Navigation links -->
+            <nav class="hidden md:flex items-center gap-stack-lg">
+                <a class="flex items-center gap-2 text-primary font-bold hover:text-primary-fixed-dim transition-all active:scale-95 duration-150 relative" href="#">
+                    <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">home</span>
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider">Home</span>
+                    <div class="absolute -bottom-[22px] left-0 w-full h-[2px] bg-primary"></div>
+                </a>
+                <a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#analysis">
+                    <span class="material-symbols-outlined text-[20px]">query_stats</span>
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider">Analyze</span>
+                </a>
+                <a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#history">
+                    <span class="material-symbols-outlined text-[20px]">history</span>
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider">History</span>
+                </a>
+                <a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150" href="#settings">
+                    <span class="material-symbols-outlined text-[20px]">settings</span>
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider">Settings</span>
+                </a>
+            </nav>
+            <!-- User Avatar Mock -->
+            <div class="flex items-center cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full" onclick="document.getElementById('settings-modal').classList.remove('hidden')">
+                <div class="w-8 h-8 rounded-full bg-surface-gray border border-outline flex items-center justify-center text-primary font-label-mono text-label-mono" title="Open Settings">
+                    GM
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Screens -->
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-container-margin py-stack-lg flex flex-col relative">
+
+        <!-- 1. LANDING & UPLOAD SCREEN -->
+        <section id="screen-landing" class="w-full flex flex-col gap-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-container-margin items-center min-h-[580px]">
+                
+                <!-- Left panel: Dragzone & Crop editor -->
+                <div class="lg:col-span-6 flex flex-col gap-stack-md h-full justify-center">
+                    <div class="bg-surface-container-low border border-outline rounded-xl p-4 flex justify-between items-center select-none shadow-sm">
+                        <span class="font-label-mono text-label-mono text-on-surface-variant uppercase text-xs">Image Target Input</span>
+                        <span class="material-symbols-outlined text-primary text-[18px]">center_focus_strong</span>
+                    </div>
+                    
+                    <!-- Drag and drop zone -->
+                    <div id="drop-zone" class="bg-surface-dim border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-8 hover:border-primary hover:bg-surface-container-lowest transition-all cursor-pointer group relative overflow-hidden min-h-[300px]">
+                        <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                        <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-stack-md group-hover:scale-110 transition-transform duration-300">
+                            <span class="material-symbols-outlined text-[32px] text-primary" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+                        </div>
+                        <h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm text-center">Analyze Screenshot</h2>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant text-center max-w-[280px]">
+                            Drag & drop a chess board image here, click to browse, or paste directly with <b>Ctrl + V</b>
+                        </p>
+                        <div class="mt-stack-lg px-4 py-1.5 rounded border border-outline text-on-surface font-label-mono text-[11px] group-hover:bg-surface-container transition-colors select-none">
+                            .PNG, .JPG, .WEBP
+                        </div>
+                        <input type="file" id="file-input" class="hidden" accept="image/*"/>
+                    </div>
+                    
+                    <!-- Crop Grid Controls (Hidden by default, shown when image loaded) -->
+                    <div id="grid-controls-panel" class="hidden bg-surface-container-low border border-outline-variant rounded-xl p-5 flex flex-col gap-4">
+                        <div class="flex justify-between items-center border-b border-surface-gray pb-2 mb-2">
+                            <h3 class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Align Board Coordinates</h3>
+                            <span class="text-xs text-on-surface-variant font-label-mono">Drag corners directly or use sliders</span>
+                        </div>
+                        
+                        <div class="relative overflow-hidden w-full rounded flex items-center justify-center bg-deep-charcoal border border-surface-gray">
+                            <canvas id="image-preview-canvas" class="max-w-full h-auto cursor-crosshair"></canvas>
+                        </div>
+                        
+                        <!-- Grid fine tuning sliders -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs text-on-surface-variant font-label-mono">Grid X Shift</label>
+                                <input type="range" id="grid-x" min="0" max="0.8" step="0.005" value="0.1" class="w-full h-1 bg-surface-gray rounded-lg appearance-none cursor-pointer accent-primary"/>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs text-on-surface-variant font-label-mono">Grid Y Shift</label>
+                                <input type="range" id="grid-y" min="0" max="0.8" step="0.005" value="0.1" class="w-full h-1 bg-surface-gray rounded-lg appearance-none cursor-pointer accent-primary"/>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs text-on-surface-variant font-label-mono">Grid Size</label>
+                                <input type="range" id="grid-size" min="0.1" max="0.9" step="0.005" value="0.8" class="w-full h-1 bg-surface-gray rounded-lg appearance-none cursor-pointer accent-primary"/>
+                            </div>
+                        </div>
+
+                        <!-- Recognition turn/action settings -->
+                        <div class="flex flex-wrap items-center justify-between gap-4 mt-2 border-t border-surface-gray pt-4">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-on-surface-variant font-label-mono">Starting turn:</label>
+                                <select id="active-turn-selector" class="bg-surface-dim border border-surface-gray rounded text-xs text-on-surface py-1 px-3 focus:outline-none focus:border-primary" onchange="appState.activeTurn = this.value">
+                                    <option value="w" selected>White to move</option>
+                                    <option value="b">Black to move</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <button id="btn-process-board" class="bg-surface-container-high hover:bg-surface-variant text-primary border border-primary/30 font-semibold text-xs py-2 px-4 rounded transition-colors flex items-center gap-1 active:scale-95">
+                                    <span class="material-symbols-outlined text-[16px]">crop_free</span> Local Scan
+                                </button>
+                                <button id="btn-use-ai" class="bg-primary text-[#000000] font-bold text-xs py-2 px-4 rounded transition-colors flex items-center gap-1 active:scale-95 shadow-[0_0_8px_rgba(242,202,80,0.3)]">
+                                    <span class="material-symbols-outlined text-[16px] font-bold">bolt</span> AI Vision Scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right panel: Explanation -->
+                <div class="lg:col-span-6 flex flex-col gap-stack-lg pl-0 lg:pl-12 justify-center">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-stack-md select-none">
+                            <span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest text-[10px]">Engine powered</span>
+                        </div>
+                        <h1 class="font-headline-xl text-headline-xl text-on-surface mb-stack-sm leading-tight">
+                            Extract tactical insights from <span class="text-primary">pixels</span>.
+                        </h1>
+                        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[550px]">
+                            Seamlessly bridge the gap between observation and analysis. Upload a screenshot of any live game, puzzle, or chess stream. Our sophisticated computer vision reconstructs the board state, ready for deep client-side Stockfish evaluation.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-stack-md max-w-[500px]">
+                        <div class="flex flex-col gap-1 p-4 bg-surface-container-low rounded-lg border border-outline-variant">
+                            <span class="material-symbols-outlined text-primary text-2xl">memory</span>
+                            <span class="font-label-mono text-label-mono text-on-surface font-semibold text-xs mt-1">Sub-second local scanning</span>
+                            <span class="text-xs text-on-surface-variant mt-1">Segments pieces based on shape profiles offline.</span>
+                        </div>
+                        <div class="flex flex-col gap-1 p-4 bg-surface-container-low rounded-lg border border-outline-variant">
+                            <span class="material-symbols-outlined text-primary text-2xl">analytics</span>
+                            <span class="font-label-mono text-label-mono text-on-surface font-semibold text-xs mt-1">WASM Stockfish Engine</span>
+                            <span class="text-xs text-on-surface-variant mt-1">Calculates 6 lines concurrently in a Web Worker.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-stack-md mt-stack-sm">
+                        <button id="btn-init-engine" class="bg-primary text-on-primary font-headline-md text-[15px] px-8 py-3 rounded hover:bg-primary-fixed-dim transition-colors flex items-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(242,202,80,0.2)]">
+                            Initialize Engine
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supported Themes Showcase -->
+            <section class="flex flex-col gap-stack-lg py-12 border-t border-outline-variant">
+                <div class="flex flex-col gap-1">
+                    <h3 class="font-headline-lg text-headline-lg text-on-surface">Universal Recognition</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant max-w-[600px]">
+                        Flawlessly interprets board geometries and pieces from standard screenshot themes:
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-container-margin">
+                    <!-- Showcase Card 1 -->
+                    <div class="group relative rounded-xl bg-surface-container border border-outline-variant overflow-hidden flex flex-col shadow-sm">
+                        <div class="h-56 w-full bg-surface-dim relative overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
+                            <!-- Embed screenshot of chess.com Neo standard image -->
+                            <img class="w-full h-full object-cover object-top opacity-70 group-hover:opacity-90 transition-opacity duration-300" src="stitch_chess_vision_move_analyzer/landing_upload_desktop/screen.png" alt="Chess.com Theme"/>
+                        </div>
+                        <div class="p-4 flex justify-between items-end relative z-20 bg-surface-container select-none">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-label-mono text-label-mono text-primary uppercase tracking-widest text-[9px]">Theme Profile 1</span>
+                                <h4 class="font-headline-md text-headline-md text-on-surface text-lg">Chess.com Standard</h4>
+                            </div>
+                            <div class="h-7 w-7 rounded bg-surface-dim border border-outline flex items-center justify-center text-win-green">
+                                <span class="material-symbols-outlined text-[16px] font-bold">check</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Showcase Card 2 -->
+                    <div class="group relative rounded-xl bg-surface-container border border-outline-variant overflow-hidden flex flex-col shadow-sm">
+                        <div class="h-56 w-full bg-surface-dim relative overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
+                            <img class="w-full h-full object-cover object-top opacity-70 group-hover:opacity-90 transition-opacity duration-300" src="stitch_chess_vision_move_analyzer/landing_upload/screen.png" alt="Lichess Theme"/>
+                        </div>
+                        <div class="p-4 flex justify-between items-end relative z-20 bg-surface-container select-none">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-label-mono text-label-mono text-primary uppercase tracking-widest text-[9px]">Theme Profile 2</span>
+                                <h4 class="font-headline-md text-headline-md text-on-surface text-lg">Lichess Classic</h4>
+                            </div>
+                            <div class="h-7 w-7 rounded bg-surface-dim border border-outline flex items-center justify-center text-win-green">
+                                <span class="material-symbols-outlined text-[16px] font-bold">check</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+
+        <!-- 2. ANALYSIS DASHBOARD SCREEN -->
+        <section id="screen-analysis" class="hidden w-full flex-grow flex flex-col md:flex-row gap-gutter relative select-none">
+            <!-- Background checkered pattern watermarks -->
+            <div class="absolute inset-0 pointer-events-none opacity-[0.03] bg-chess-pattern"></div>
+            
+            <!-- Left Pane: Advantage Evaluation Bar -->
+            <aside class="w-12 shrink-0 hidden md:flex flex-col relative rounded-lg overflow-hidden border border-surface-gray bg-surface-container-low shadow-sm">
+                <!-- White advantage area (starts bottom, grows up) -->
+                <div id="eval-bar-fill" class="w-full bg-[#E2E8F0] flex-1 flex flex-col justify-end relative transition-all duration-300 ease-out" style="height: 50%;">
+                    <!-- Gold midline marker -->
+                    <div class="absolute left-0 right-0 top-1/2 h-[1px] bg-primary z-10 shadow-[0_0_4px_rgba(212,175,55,0.8)]"></div>
+                    <div id="eval-bar-text" class="p-1 text-center font-label-mono text-label-mono text-surface-dim font-bold z-10 text-[11px] mb-2">0.00</div>
+                </div>
+                <!-- Black disadvantage area -->
+                <div class="w-full bg-[#1A202C] flex-1"></div>
+            </aside>
+
+            <!-- Center Pane: Interactive Virtual Chessboard -->
+            <section class="flex-1 flex flex-col items-center justify-center min-w-[300px] relative z-10">
+                <div class="w-full max-w-[680px] aspect-square relative shadow-xl ring-1 ring-surface-gray rounded bg-surface-container-low p-2">
+                    <div id="chessboard-container" class="w-full h-full relative rounded overflow-hidden">
+                        <!-- Custom CSS Board Grid is rendered here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Board Controls Panel -->
+                <div class="w-full max-w-[680px] mt-4 flex flex-wrap justify-between items-center bg-surface-container-low p-3 rounded-lg border border-surface-gray gap-3">
+                    <div class="flex items-center gap-4">
+                        <!-- Active player turn toggle -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-on-surface-variant font-label-mono uppercase">Player to Move:</span>
+                            <select id="active-turn-toggle" class="bg-surface-dim border border-surface-gray rounded text-xs text-on-surface py-0.5 px-2 focus:outline-none focus:border-primary">
+                                <option value="w" selected>White</option>
+                                <option value="b">Black</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Board orientation toggle -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-on-surface-variant font-label-mono uppercase">Flip View:</span>
+                            <select id="board-orientation-toggle" class="bg-surface-dim border border-surface-gray rounded text-xs text-on-surface py-0.5 px-2 focus:outline-none focus:border-primary">
+                                <option value="white" selected>White at bottom</option>
+                                <option value="black">Black at bottom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button id="btn-edit-mode" class="bg-surface-container-high hover:bg-surface-variant text-on-surface border border-outline-variant font-semibold text-xs py-1.5 px-3 rounded transition-colors flex items-center gap-1 active:scale-95">
+                            <span class="material-symbols-outlined text-[15px]">edit</span> Edit Layout
+                        </button>
+                        <button id="btn-save-analysis" class="bg-surface-container-high hover:bg-surface-variant text-primary border border-primary/20 font-semibold text-xs py-1.5 px-3 rounded transition-colors flex items-center gap-1 active:scale-95">
+                            <span class="material-symbols-outlined text-[15px]">favorite</span> Save analysis
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Piece Editor Picker Panel (Shown when Edit Layout active) -->
+                <div id="piece-picker-panel" class="hidden w-full max-w-[680px] mt-2 bg-surface-container-low border border-outline-variant rounded-lg p-3 flex flex-col gap-2">
+                    <div class="flex justify-between items-center text-[10px] text-on-surface-variant font-label-mono uppercase border-b border-surface-gray pb-1 select-none">
+                        <span>Select Piece and click on board squares</span>
+                        <div class="flex gap-2">
+                            <button onclick="chess.clear(); renderVirtualBoard(); initStockfish(); analyzePosition();" class="text-loss-red hover:underline uppercase text-[9px]">Clear board</button>
+                            <button onclick="chess.reset(); renderVirtualBoard(); initStockfish(); analyzePosition();" class="text-primary hover:underline uppercase text-[9px]">Reset Startpos</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mt-1">
+                        <!-- White pieces picker -->
+                        <div class="flex items-center gap-1">
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center active" data-piece="wP"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wP.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="wN"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wN.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="wB"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wB.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="wR"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wR.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="wQ"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wQ.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="wK"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/wK.png" class="w-7 h-7"></button>
+                        </div>
+                        <!-- Empty rubber -->
+                        <button class="piece-picker-btn w-8 h-8 rounded bg-surface-dim border border-outline flex items-center justify-center text-xs text-on-surface-variant font-label-mono uppercase" data-piece="" title="Eraser">DEL</button>
+                        <!-- Black pieces picker -->
+                        <div class="flex items-center gap-1">
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bP"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bP.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bN"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bN.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bB"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bB.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bR"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bR.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bQ"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bQ.png" class="w-7 h-7"></button>
+                            <button class="piece-picker-btn w-8 h-8 rounded bg-surface-container border border-surface-bright flex items-center justify-center" data-piece="bK"><img src="https://chessboardjs.com/img/chesspieces/wikipedia/bK.png" class="w-7 h-7"></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Pane: Analysis Engine Console -->
+            <aside class="w-full md:w-[400px] shrink-0 flex flex-col gap-4 relative z-10 h-full overflow-hidden">
+                <!-- Stockfish Status Card -->
+                <div class="bg-surface-container-low rounded-lg border border-surface-gray p-4 flex flex-col gap-2 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-surface-gray pb-2">
+                        <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2 text-[20px]">
+                            <span class="material-symbols-outlined text-primary">memory</span>
+                            Engine Analysis
+                        </h2>
+                        <!-- Status indicator -->
+                        <span id="engine-status-badge" class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded font-label-mono text-[9px] uppercase border border-outline-variant flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-surface-gray"></span> Inactive
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-end mt-1 text-xs">
+                        <div>
+                            <div class="font-label-sm text-label-sm text-on-surface-variant uppercase text-[10px]">Client Processor</div>
+                            <div id="opponent-name" class="font-body-sm text-body-sm font-semibold text-on-surface">Stockfish.js Worker</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-label-sm text-label-sm text-on-surface-variant uppercase text-[10px]">Evaluation depth</div>
+                            <div id="engine-depth-display" class="font-label-mono text-label-mono text-primary font-bold">0/15</div>
+                        </div>
+                    </div>
+                    <p id="engine-status-text" class="text-xs text-on-surface-variant mt-1 italic">Engine stopped.</p>
+                </div>
+                
+                <!-- Ranked Candidate Moves List (Top 6 Lines) -->
+                <div class="flex-grow bg-surface-container-low rounded-lg border border-surface-gray flex flex-col overflow-hidden min-h-[250px] shadow-sm">
+                    <div class="p-3 border-b border-surface-gray bg-surface-container-high flex justify-between items-center sticky top-0 z-10">
+                        <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-xs">Top 6 Recommended Moves</h3>
+                        <span class="material-symbols-outlined text-on-surface-variant text-sm">sort</span>
+                    </div>
+                    
+                    <!-- Candidate items -->
+                    <div id="engine-lines-list" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+                        <div class="py-12 flex flex-col items-center justify-center text-center opacity-60">
+                            <span class="material-symbols-outlined text-3xl mb-2 animate-spin-slow">change_circle</span>
+                            <p class="text-xs font-label-mono">Waiting for engine analysis data...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Utilities Export panel -->
+                <div class="flex gap-2 shrink-0">
+                    <button id="btn-copy-pgn" class="flex-1 bg-surface-container-high hover:bg-surface-variant text-on-surface font-body-sm font-semibold py-3 px-4 rounded border border-surface-gray transition-colors flex items-center justify-center gap-2 text-xs active:scale-95">
+                        <span class="material-symbols-outlined text-[16px]">content_copy</span> Copy PGN
+                    </button>
+                    <button id="btn-export-fen" class="flex-1 bg-primary hover:bg-primary-fixed-dim text-[#000000] font-body-sm font-bold py-3 px-4 rounded transition-colors flex items-center justify-center gap-2 text-xs active:scale-95 shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+                        <span class="material-symbols-outlined text-[16px]">ios_share</span> Copy FEN
+                    </button>
+                </div>
+            </aside>
+        </section>
+
+
+        <!-- 3. ANALYSIS HISTORY SCREEN -->
+        <section id="screen-history" class="hidden w-full flex-grow flex flex-col bg-chess-pattern">
+            <!-- Header section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md mb-stack-lg border-b border-surface-gray pb-stack-md select-none">
+                <div>
+                    <h1 class="font-headline-lg text-headline-lg text-on-surface">Analysis History</h1>
+                    <p class="font-body-md text-body-md text-on-surface-variant mt-unit">Review and query past evaluations.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-stack-sm">
+                    <!-- Search input -->
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none group-focus-within:text-primary transition-colors">search</span>
+                        <input id="history-search" class="bg-surface-dim border border-surface-gray text-on-surface rounded font-body-sm text-xs pl-9 pr-4 py-2 focus:outline-none focus:border-primary transition-all w-full md:w-64 placeholder-on-surface-variant/40" placeholder="Search saved analyses..." type="text" oninput="renderHistory()"/>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cards list grid -->
+            <div id="history-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter select-none">
+                <!-- Cards are loaded here dynamically from localStorage -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global API Settings Modal Panel -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-background/80 select-none">
+        <div class="bg-surface-container-low border border-outline rounded-xl max-w-md w-[90%] p-6 flex flex-col gap-4 shadow-2xl relative">
+            <button id="btn-close-settings" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <h2 class="font-headline-md text-headline-md text-primary font-bold border-b border-surface-gray pb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined">settings</span> Engine Settings
+            </h2>
+            
+            <!-- Settings fields -->
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-on-surface font-label-mono">Gemini API Key</label>
+                    <input type="password" id="settings-api-key" placeholder="Enter Gemini Vision API Key" class="bg-surface-dim border border-surface-gray text-on-surface rounded font-body-sm text-sm p-2 focus:outline-none focus:border-primary placeholder-on-surface-variant/30"/>
+                    <span class="text-[10px] text-on-surface-variant">Saved locally in your browser. Used for high-accuracy board scans.</span>
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-on-surface font-label-mono">Engine Evaluation Depth</label>
+                    <select id="settings-depth" class="bg-surface-dim border border-surface-gray text-on-surface rounded font-body-sm text-sm p-2 focus:outline-none focus:border-primary">
+                        <option value="10">Depth 10 (Fastest)</option>
+                        <option value="15" selected>Depth 15 (Recommended)</option>
+                        <option value="20">Depth 20 (Deep)</option>
+                        <option value="25">Depth 25 (Supercomputer)</option>
+                    </select>
+                    <span class="text-[10px] text-on-surface-variant">Higher values increase analysis accuracy but consume more CPU/time.</span>
+                </div>
+            </div>
+            
+            <button id="btn-save-settings" class="bg-primary text-[#000000] font-bold py-2.5 rounded transition-colors mt-2 hover:bg-primary-fixed-dim active:scale-95">
+                Save & Apply Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (Hidden on Desktop) -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container border-t border-outline-variant z-50 flex justify-around items-center h-16 px-4 pb-safe select-none">
+        <a class="flex flex-col items-center justify-center text-primary font-bold w-[25%] active:scale-95 duration-150 relative" href="#" onclick="navigateToScreen('landing')">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+            <span class="font-label-sm text-label-sm mt-1">Home</span>
+            <div class="absolute -top-3 w-8 h-1 bg-primary rounded-b-full"></div>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#analysis" onclick="navigateToScreen('analysis')">
+            <span class="material-symbols-outlined text-[24px]">query_stats</span>
+            <span class="font-label-sm text-label-sm mt-1">Analyze</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#history" onclick="navigateToScreen('history')">
+            <span class="material-symbols-outlined text-[24px]">history</span>
+            <span class="font-label-sm text-label-sm mt-1">History</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant w-[25%] active:scale-95 duration-150 hover:text-primary-fixed-dim transition-all" href="#settings" onclick="document.getElementById('settings-modal').classList.remove('hidden')">
+            <span class="material-symbols-outlined text-[24px]">settings</span>
+            <span class="font-label-sm text-label-sm mt-1">Settings</span>
+        </a>
+    </nav>
+
+    <!-- Chess Rules API: chess.js v0.10.3 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.js"></script>
+    
+    <!-- Pieces asset config & Heuristics scan classifier -->
+    <script src="pieces.js"></script>
+    
+    <!-- Main Application Script -->
+    <script src="app.js"></script>
+
+</body>
+</html>

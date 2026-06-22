@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Analysis History - Grandmaster Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-bright": "#37393b",
+                      "secondary": "#bcc7dd",
+                      "on-tertiary-fixed-variant": "#27438a",
+                      "on-primary-fixed-variant": "#574500",
+                      "secondary-container": "#3c475a",
+                      "surface-dim": "#121416",
+                      "on-background": "#e2e2e5",
+                      "surface-container": "#1e2022",
+                      "on-error": "#690005",
+                      "outline": "#99907c",
+                      "on-primary-container": "#554300",
+                      "surface-container-high": "#282a2c",
+                      "primary": "#f2ca50",
+                      "inverse-surface": "#e2e2e5",
+                      "on-primary": "#3c2f00",
+                      "error-container": "#93000a",
+                      "on-secondary-fixed": "#111c2c",
+                      "on-tertiary-fixed": "#00174b",
+                      "win-green": "#81B64C",
+                      "secondary-fixed": "#d8e3fa",
+                      "tertiary": "#bfcdff",
+                      "on-tertiary": "#082b72",
+                      "tertiary-container": "#97b0ff",
+                      "surface-container-lowest": "#0c0e10",
+                      "on-tertiary-container": "#254188",
+                      "on-primary-fixed": "#241a00",
+                      "deep-charcoal": "#121212",
+                      "on-surface-variant": "#d0c5af",
+                      "inverse-primary": "#735c00",
+                      "surface-container-low": "#1a1c1e",
+                      "primary-fixed": "#ffe088",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#333537",
+                      "on-secondary-container": "#aab6cc",
+                      "secondary-fixed-dim": "#bcc7dd",
+                      "surface-gray": "#2D3748",
+                      "tertiary-fixed": "#dbe1ff",
+                      "outline-variant": "#4d4635",
+                      "surface-container-highest": "#333537",
+                      "primary-container": "#d4af37",
+                      "on-secondary-fixed-variant": "#3c475a",
+                      "primary-fixed-dim": "#e9c349",
+                      "inverse-on-surface": "#2f3133",
+                      "on-surface": "#e2e2e5",
+                      "surface": "#121416",
+                      "background": "#121416",
+                      "loss-red": "#E53E3E",
+                      "analysis-blue": "#3182CE",
+                      "surface-tint": "#e9c349",
+                      "on-secondary": "#263142"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "gutter": "16px",
+                      "container-margin": "24px",
+                      "stack-lg": "32px",
+                      "stack-md": "16px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "headline-xl": ["Hanken Grotesk"],
+                      "body-sm": ["Hanken Grotesk"],
+                      "label-mono": ["JetBrains Mono"],
+                      "label-sm": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        /* Subtle checkered watermark background for empty areas */
+        .bg-chess-pattern {
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.01) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.01) 75%, rgba(255,255,255,0.01)), 
+                linear-gradient(45deg, rgba(255,255,255,0.01) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.01) 75%, rgba(255,255,255,0.01));
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+        
+        /* Custom scrollbar for data tables/grids */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121416; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333537; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4d4635; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background border-b border-outline-variant dark:border-outline-variant flat no shadows w-full top-0 flex items-center justify-between px-container-margin h-16 w-full sticky z-40">
+<div class="flex items-center gap-stack-md cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined text-primary dark:text-primary text-2xl">grid_view</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary tracking-tight">Grandmaster Analytics</span>
+</div>
+<div class="flex items-center hover:bg-surface-container-high transition-colors p-2 rounded-full cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant text-3xl" title="User Profile">account_circle</span>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col p-container-margin w-full max-w-screen-2xl mx-auto pb-24 md:pb-container-margin bg-chess-pattern">
+<!-- Header & Controls -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md mb-stack-lg border-b border-surface-gray pb-stack-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Analysis History</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-unit">Review and query past evaluations.</p>
+</div>
+<div class="flex flex-wrap items-center gap-stack-sm">
+<!-- Search -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none group-focus-within:text-primary transition-colors">search</span>
+<input class="bg-surface-dim border border-surface-gray text-on-surface rounded font-body-sm text-body-sm pl-9 pr-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all w-full md:w-64 placeholder-on-surface-variant/50" placeholder="Search variations..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-stack-sm">
+<button class="bg-surface-container-low border border-surface-gray hover:bg-surface-container hover:border-outline transition-colors text-on-surface font-body-sm text-body-sm px-4 py-2 rounded flex items-center gap-unit">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+                        Filters
+                    </button>
+<button class="bg-primary text-on-primary font-body-sm text-body-sm px-4 py-2 rounded font-semibold flex items-center gap-unit hover:bg-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-[16px] font-bold">add</span>
+                        New Analysis
+                    </button>
+</div>
+</div>
+</div>
+<!-- History Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="bg-surface-container-low border border-surface-gray rounded-lg overflow-hidden hover:border-primary/50 hover:bg-surface-container transition-all cursor-pointer group flex flex-col h-full relative">
+<!-- Status indicator line -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors"></div>
+<!-- Board Thumbnail -->
+<div class="aspect-square bg-deep-charcoal border-b border-surface-gray relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity mix-blend-luminosity" data-alt="A striking, high-contrast digital rendering of a chess board from a top-down perspective, captured mid-game. The scene is illuminated by dramatic, studio-quality lighting that casts precise, sharp shadows across the surface. The dark squares are a muted slate gray, while the light squares are a highly desaturated cool gray. The pieces themselves are incredibly sleek, modern, and stylized, appearing as if machined from solid, brushed metal. Deep blacks, crisp grays, and tiny glints of analytical gold highlight the rigorous, grandmaster-level focus." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDEkGnS3Dpi-qMVdg79xwlkB-3wYJgnQwccVwapLRjx3KWjx6V8a8yjgsTzORhj_iHNOz_zY1-BODCPSiNOviLOm2Ou3VqjsBy2mwAjtQj7W4zvnE-nArC5TbyBnDuS4OjSLKXVYuJz-gSSNyiyGwO80dpPA-_A1ZSS41qfIrYbV6-bYPgsc-T6q0O1Yb55CJwfj9b1-_fqhqkHeA9-2eZy3TgyhCMRCcW8ZjapMAi-pntGIg9BjE5vwp6ifv0-sg3B4V06k5LlVn8')"></div>
+<!-- Evaluation Bar overlay -->
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-deep-charcoal border-r border-surface-gray flex flex-col">
+<div class="w-full bg-on-surface flex-1"></div>
+<div class="w-full bg-background h-1/3 border-t border-primary/50"></div>
+</div>
+</div>
+<!-- Content -->
+<div class="p-stack-md flex-1 flex flex-col pl-[calc(16px+4px)]"> <!-- Offset for side indicator -->
+<div class="flex justify-between items-start mb-unit">
+<h3 class="font-headline-md text-headline-md text-on-surface truncate pr-2 group-hover:text-primary transition-colors">Sicilian Defense</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm shrink-0">more_vert</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mb-stack-sm">Najdorf Variation, English Attack</p>
+<div class="flex items-center gap-stack-sm mt-auto pt-stack-sm border-t border-surface-gray/50">
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">memory</span>
+                            +1.2
+                        </div>
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface-variant">
+                            Depth 24
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-auto text-[11px]">Today</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low border border-surface-gray rounded-lg overflow-hidden hover:border-primary/50 hover:bg-surface-container transition-all cursor-pointer group flex flex-col h-full relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-surface-gray group-hover:bg-primary/50 transition-colors"></div>
+<div class="aspect-square bg-deep-charcoal border-b border-surface-gray relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity mix-blend-luminosity" data-alt="A striking, high-contrast digital rendering of a chess board from a top-down perspective, captured mid-game. The scene is illuminated by dramatic, studio-quality lighting that casts precise, sharp shadows across the surface. The dark squares are a muted slate gray, while the light squares are a highly desaturated cool gray. The pieces themselves are incredibly sleek, modern, and stylized, appearing as if machined from solid, brushed metal. Deep blacks, crisp grays, and tiny glints of analytical gold highlight the rigorous, grandmaster-level focus." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCn5Ww9KgAXpQCmtkCjEytPqQ-YFdE63gtXsy7zb7f--kVv5xfLkgkWcKbdmYx-EIQqnEHlsAfHAi_xKMhfnL0to0ipzyEORP2i5BLwgPOjx0eyhqWOP_jjqYq1Yuy_KJV0bxkFyiqycg4FOFmhVKyaKR3Vto9_Z3TtFiWJPrI0Uuou_ayI5eJ-53JlC2BRJmM71RGofW5R1Vgk7zwOy_2tqW4dKMsnTJQ9NcI-duU4bdPpfuYHYf6nbuVjvwKuMrSJciydEofJOF0')"></div>
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-deep-charcoal border-r border-surface-gray flex flex-col">
+<div class="w-full bg-on-surface h-1/2 border-b border-primary/50"></div>
+<div class="w-full bg-background flex-1"></div>
+</div>
+</div>
+<div class="p-stack-md flex-1 flex flex-col pl-[calc(16px+4px)]">
+<div class="flex justify-between items-start mb-unit">
+<h3 class="font-headline-md text-headline-md text-on-surface truncate pr-2 group-hover:text-primary transition-colors">Queen's Gambit</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm shrink-0">more_vert</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mb-stack-sm">Declined, Tartakower Defense</p>
+<div class="flex items-center gap-stack-sm mt-auto pt-stack-sm border-t border-surface-gray/50">
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-surface-gray">memory</span>
+                            0.0
+                        </div>
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface-variant">
+                            Depth 30
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-auto text-[11px]">Yesterday</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low border border-surface-gray rounded-lg overflow-hidden hover:border-primary/50 hover:bg-surface-container transition-all cursor-pointer group flex flex-col h-full relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-loss-red/50 group-hover:bg-loss-red transition-colors"></div>
+<div class="aspect-square bg-deep-charcoal border-b border-surface-gray relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity mix-blend-luminosity" data-alt="A striking, high-contrast digital rendering of a chess board from a top-down perspective, captured mid-game. The scene is illuminated by dramatic, studio-quality lighting that casts precise, sharp shadows across the surface. The dark squares are a muted slate gray, while the light squares are a highly desaturated cool gray. The pieces themselves are incredibly sleek, modern, and stylized, appearing as if machined from solid, brushed metal. Deep blacks, crisp grays, and tiny glints of analytical gold highlight the rigorous, grandmaster-level focus." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8P3YCwbSOuwPRoZyMC85CvQs66OUPAurL1B1igUQ_2Bvm1wK8oJA6eC4ELESlVQVaGo1yhcyRzGENMzwArU7TkwxhqdQzGudXNN36G8aiSwXr8GvTtfAiu-6gE0yDXE7c-vJMOYStseyG4PXSavFS9JJZXvDEFgK-lkJP_6qsDiC6Vp_uyIoRTlLqaUArsQc8C8v2go5_YwTvquDI2iJUdfYZX1MM8W-iFUPnLR5PUtlviFHeI-eW73SnymEd01-3jr1u4VsGE_s')"></div>
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-deep-charcoal border-r border-surface-gray flex flex-col">
+<div class="w-full bg-on-surface h-[20%]"></div>
+<div class="w-full bg-background flex-1 border-t border-primary/50"></div>
+</div>
+</div>
+<div class="p-stack-md flex-1 flex flex-col pl-[calc(16px+4px)]">
+<div class="flex justify-between items-start mb-unit">
+<h3 class="font-headline-md text-headline-md text-on-surface truncate pr-2 group-hover:text-primary transition-colors">Ruy Lopez</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm shrink-0">more_vert</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mb-stack-sm">Berlin Defense, l'Hermet Variation</p>
+<div class="flex items-center gap-stack-sm mt-auto pt-stack-sm border-t border-surface-gray/50">
+<div class="px-2 py-1 bg-surface-container border border-loss-red/30 rounded text-label-mono font-label-mono text-loss-red flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                            -3.4
+                        </div>
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface-variant">
+                            Depth 22
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-auto text-[11px]">Oct 12</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-low border border-surface-gray rounded-lg overflow-hidden hover:border-primary/50 hover:bg-surface-container transition-all cursor-pointer group flex flex-col h-full relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-surface-gray group-hover:bg-primary/50 transition-colors"></div>
+<div class="aspect-square bg-deep-charcoal border-b border-surface-gray relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity mix-blend-luminosity" data-alt="A striking, high-contrast digital rendering of a chess board from a top-down perspective, captured mid-game. The scene is illuminated by dramatic, studio-quality lighting that casts precise, sharp shadows across the surface. The dark squares are a muted slate gray, while the light squares are a highly desaturated cool gray. The pieces themselves are incredibly sleek, modern, and stylized, appearing as if machined from solid, brushed metal. Deep blacks, crisp grays, and tiny glints of analytical gold highlight the rigorous, grandmaster-level focus." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB4FszbkNUgHVctAbX_zDFjQUqNeLXhR5ypo1wLx_BkngjE5p6cPNqx4MqI7fWp2LAmhMooPRau_2MLSIYRaJVKVPDah9pjTxMlUdDODwu18muAmh9AW6m-lE9NSZ3UtpPR3HgXmaXlgZBt9aeI2p-4gj59LKhXKrIXNKdo411mJv_sfjolgLNX72FVVC0XnjSFdNWycycHbUNi_Um2YDRhvZJRK8nQfjM3hJ8jP5npNiGKm9f0brWnGLc5VgBpd7XlCGQng7l1bAg')"></div>
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-deep-charcoal border-r border-surface-gray flex flex-col">
+<div class="w-full bg-on-surface flex-1 border-b border-primary/50"></div>
+<div class="w-full bg-background h-[10%]"></div>
+</div>
+</div>
+<div class="p-stack-md flex-1 flex flex-col pl-[calc(16px+4px)]">
+<div class="flex justify-between items-start mb-unit">
+<h3 class="font-headline-md text-headline-md text-on-surface truncate pr-2 group-hover:text-primary transition-colors">Caro-Kann</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm shrink-0">more_vert</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mb-stack-sm">Advance Variation, Tal Variation</p>
+<div class="flex items-center gap-stack-sm mt-auto pt-stack-sm border-t border-surface-gray/50">
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-surface-gray">memory</span>
+                            +0.4
+                        </div>
+<div class="px-2 py-1 bg-surface-container border border-surface-gray rounded text-label-mono font-label-mono text-on-surface-variant">
+                            Depth 26
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-auto text-[11px]">Oct 10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Load More -->
+<div class="mt-stack-lg flex justify-center">
+<button class="text-primary font-label-mono text-label-mono hover:text-primary-fixed-dim transition-colors flex items-center gap-unit uppercase tracking-widest">
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+                Load Previous
+            </button>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on Desktop, Visible on Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-16 px-4 bg-surface-container dark:bg-surface-container border-t border-outline-variant dark:border-outline-variant z-50 md:hidden flat no shadows">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150 cursor-pointer">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm mt-1">Analyze</span>
+</div>
+<!-- Active State -->
+<div class="flex flex-col items-center justify-center text-primary dark:text-primary font-bold active:scale-95 duration-150 cursor-pointer relative">
+<div class="absolute -top-3 w-8 h-1 bg-primary rounded-b-full"></div>
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-sm text-label-sm mt-1">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-95 duration-150 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm mt-1">Settings</span>
+</div>
+</nav>
+</body></html>
