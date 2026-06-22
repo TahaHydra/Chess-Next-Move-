@@ -142,20 +142,37 @@ function classifyPieceHeuristic(canvas, isLightSquare, colorLight, colorDark) {
         
         const templateData = tempCtx.getImageData(0, 0, S, S).data;
         
-        // Compute pixel absolute error
-        let error = 0;
-        for (let y = startY; y < endY; y++) {
-            for (let x = startX; x < endX; x++) {
-                const idx = (y * S + x) * 4;
-                error += Math.abs(cellData[idx] - templateData[idx]) +
-                         Math.abs(cellData[idx + 1] - templateData[idx + 1]) +
-                         Math.abs(cellData[idx + 2] - templateData[idx + 2]);
+        // Compute pixel absolute error with sliding window (dx, dy from -1 to 1) to handle off-center pieces
+        let bestShiftError = Infinity;
+        
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                let shiftError = 0;
+                for (let y = startY; y < endY; y++) {
+                    for (let x = startX; x < endX; x++) {
+                        const idx = (y * S + x) * 4;
+                        const tx = x + dx;
+                        const ty = y + dy;
+                        
+                        if (tx >= 0 && tx < S && ty >= 0 && ty < S) {
+                            const tIdx = (ty * S + tx) * 4;
+                            shiftError += Math.abs(cellData[idx] - templateData[tIdx]) +
+                                          Math.abs(cellData[idx + 1] - templateData[tIdx + 1]) +
+                                          Math.abs(cellData[idx + 2] - templateData[tIdx + 2]);
+                        } else {
+                            shiftError += 255 * 3; // Penalty for out-of-bounds border alignment
+                        }
+                    }
+                }
+                shiftError = shiftError / totalPixels;
+                if (shiftError < bestShiftError) {
+                    bestShiftError = shiftError;
+                }
             }
         }
-        error = error / totalPixels;
         
-        if (error < minPieceError) {
-            minPieceError = error;
+        if (bestShiftError < minPieceError) {
+            minPieceError = bestShiftError;
             bestPieceCode = template.code;
         }
     });
