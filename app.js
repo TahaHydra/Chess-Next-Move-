@@ -1108,7 +1108,7 @@ function parseEngineInfoLine(line) {
     }
     
     // Parse PV moves (UCI format)
-    const pvMatch = line.match(/pv\s+(.+)$/);
+    const pvMatch = line.match(/\bpv\s+(.+)$/);
     if (pvMatch) {
         const uciMoves = pvMatch[1].split(' ');
         const sanMoves = convertUciToSan(uciMoves);

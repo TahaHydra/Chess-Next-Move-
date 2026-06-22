@@ -116,8 +116,8 @@ function classifyPieceHeuristic(canvas, isLightSquare, colorLight, colorDark) {
     emptyError = emptyError / totalPixels;
     
     // If the average color difference is very low, the square is definitely empty
-    // (Normal empty squares have error < 3, while squares with pieces have error > 25)
-    if (emptyError < 12.0) {
+    // (Normal empty squares have error < 2.5, while squares with pieces have error > 8.0)
+    if (emptyError < 5.5) {
         return null;
     }
     
